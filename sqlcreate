@@ -173,9 +173,6 @@ CREATE TABLE [dbo].[Application](
 	[ACTReading] [int] NULL,
 	[ACTScience] [int] NULL,
 	[ACTComposite] [int] NULL,
-	FirstName varchar(50)null,
-      LastName varchar(50)null,
-	Email varchar(100)null,
  CONSTRAINT [PK_Application] PRIMARY KEY CLUSTERED 
 (
 	[ApplicationID] ASC
@@ -616,18 +613,7 @@ REFERENCES [dbo].[Student] ([StudentID])
 GO
 ALTER TABLE [dbo].[StudentOpportunity] CHECK CONSTRAINT [FK_StudentOpportunity_Student]
 GO
-USE [Cued-in]
-
-go
-USE [Cued-in]
-GO
-ALTER DATABASE [Cued-In] SET  READ_WRITE 
-GO
-ALTER TABLE [dbo].[Attachment]
-ALTER COLUMN Content varchar(100);	       
 USE [master]
 GO
 ALTER DATABASE [Cued-In] SET  READ_WRITE 
-GO
-Use [Cued-In]
 GO
