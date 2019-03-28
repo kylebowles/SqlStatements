@@ -77,7 +77,8 @@ EXEC sys.sp_db_vardecimal_storage_format N'Cued-In', N'ON'
 GO
 ALTER DATABASE [Cued-In] SET QUERY_STORE = OFF
 GO
-
+USE [Cued-In]
+GO
 ALTER DATABASE SCOPED CONFIGURATION SET LEGACY_CARDINALITY_ESTIMATION = OFF;
 GO
 ALTER DATABASE SCOPED CONFIGURATION FOR SECONDARY SET LEGACY_CARDINALITY_ESTIMATION = PRIMARY;
@@ -96,7 +97,7 @@ ALTER DATABASE SCOPED CONFIGURATION FOR SECONDARY SET QUERY_OPTIMIZER_HOTFIXES =
 GO
 USE [Cued-In]
 GO
-/*** person **/
+/****** Object:  Table [dbo].[Person]    Script Date: 3/22/2019 5:00:33 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -108,7 +109,9 @@ CREATE TABLE [dbo].[Person](
 	[LastName] [nvarchar](50) NOT NULL,
 	[Email] [nvarchar](50) NOT NULL,
 	[PhoneNumber] [nvarchar](12) NOT NULL,
+	[JobTitle] [nvarchar](12),
 	[AddressID] [int] NOT NULL,
+	[EmployerID] [int] references Employer(EmployerID),
 	[personType] [nvarchar](10) NOT NULL,
  CONSTRAINT [PK_Person] PRIMARY KEY CLUSTERED 
 (
@@ -122,16 +125,14 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Account](
-	[AccountID] [int] IDENTITY(1,1) NOT NULL,
+	[PersonID] [int] IDENTITY(1,1) NOT NULL,
 	[Username] [nvarchar](50) NOT NULL,
 	[PasswordHash] [varchar](128) NOT NULL,
 	[PasswordSalt] [nchar](10) NOT NULL,
 	[ModifiedDate] [datetime] NOT NULL,
-	[PersonID] int NOT NULL,
-	Foreign KEy (personID) references Person(PersonID),
  CONSTRAINT [PK_Account] PRIMARY KEY CLUSTERED 
 (
-	[AccountID] ASC
+	[PersonID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
@@ -235,10 +236,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Employer](
 	[EmployerID] [int] IDENTITY(1,1) NOT NULL,
-	[PersonID] [int] NOT NULL,
 	[isApproved] [nvarchar](5) NOT NULL,
 	[EmployerName] [nvarchar](100) NOT NULL,
-	[JobTitle] [nvarchar](50),
 	[EmployerSummary] [nvarchar](1000),
  CONSTRAINT [PK_Employer] PRIMARY KEY CLUSTERED 
 (
@@ -323,7 +322,8 @@ CREATE TABLE [dbo].[Post](
 	[PostDescription] [nvarchar](1000) NOT NULL,
 	[DateCreated] [date] NOT NULL,
 	[Deadline] [date] NULL,
-	[PersonID] [int] NOT NULL,
+	[PersonID] [int] NOT NULL references Person(PersonID),
+	[EmployerID] [int] NOT NULL references Employer(EmployerID),
 	[OpportunityID] [int] NOT NULL,
 	[ModifiedDate] [datetime] NOT NULL,
  CONSTRAINT [PK_Post] PRIMARY KEY CLUSTERED 
@@ -493,9 +493,6 @@ ALTER TABLE [dbo].[Educator]  WITH CHECK ADD  CONSTRAINT [FK_Educator_Person] FO
 REFERENCES [dbo].[Person] ([PersonID])
 GO
 ALTER TABLE [dbo].[Educator] CHECK CONSTRAINT [FK_Educator_Person]
-GO
-ALTER TABLE [dbo].[Employer]  WITH CHECK ADD  CONSTRAINT [FK_Employer_Person] FOREIGN KEY([PersonID])
-REFERENCES [dbo].[Person] ([PersonID])
 GO
 ALTER TABLE [dbo].[Employer] CHECK CONSTRAINT [FK_Employer_Person]
 GO
