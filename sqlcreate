@@ -1,3 +1,5 @@
+USE [master]
+GO
 /****** Object:  Database [Cued-In]    Script Date: 3/22/2019 5:00:33 PM ******/
 CREATE DATABASE [Cued-In]
  CONTAINMENT = NONE
@@ -75,8 +77,7 @@ EXEC sys.sp_db_vardecimal_storage_format N'Cued-In', N'ON'
 GO
 ALTER DATABASE [Cued-In] SET QUERY_STORE = OFF
 GO
-USE [Cued-In]
-GO
+
 ALTER DATABASE SCOPED CONFIGURATION SET LEGACY_CARDINALITY_ESTIMATION = OFF;
 GO
 ALTER DATABASE SCOPED CONFIGURATION FOR SECONDARY SET LEGACY_CARDINALITY_ESTIMATION = PRIMARY;
@@ -95,20 +96,42 @@ ALTER DATABASE SCOPED CONFIGURATION FOR SECONDARY SET QUERY_OPTIMIZER_HOTFIXES =
 GO
 USE [Cued-In]
 GO
+/*** person **/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Person](
+	[PersonID] [int] IDENTITY(1,1) NOT NULL,
+	[FirstName] [nvarchar](50) NOT NULL,
+	[MiddleName] [nvarchar](50) NULL,
+	[LastName] [nvarchar](50) NOT NULL,
+	[Email] [nvarchar](50) NOT NULL,
+	[PhoneNumber] [nvarchar](12) NOT NULL,
+	[AddressID] [int] NOT NULL,
+	[personType] [nvarchar](10) NOT NULL,
+ CONSTRAINT [PK_Person] PRIMARY KEY CLUSTERED 
+(
+	[PersonID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
 /****** Object:  Table [dbo].[Account]    Script Date: 3/22/2019 5:00:33 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Account](
-	[PersonID] [int] IDENTITY(1,1) NOT NULL,
+	[AccountID] [int] IDENTITY(1,1) NOT NULL,
 	[Username] [nvarchar](50) NOT NULL,
 	[PasswordHash] [varchar](128) NOT NULL,
 	[PasswordSalt] [nchar](10) NOT NULL,
 	[ModifiedDate] [datetime] NOT NULL,
+	[PersonID] int NOT NULL,
+	Foreign KEy (personID) references Person(PersonID),
  CONSTRAINT [PK_Account] PRIMARY KEY CLUSTERED 
 (
-	[PersonID] ASC
+	[AccountID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
@@ -149,6 +172,9 @@ CREATE TABLE [dbo].[Application](
 	[ACTReading] [int] NULL,
 	[ACTScience] [int] NULL,
 	[ACTComposite] [int] NULL,
+	FirstName varchar(50)null,
+      LastName varchar(50)null,
+	Email varchar(100)null,
  CONSTRAINT [PK_Application] PRIMARY KEY CLUSTERED 
 (
 	[ApplicationID] ASC
@@ -212,6 +238,8 @@ CREATE TABLE [dbo].[Employer](
 	[PersonID] [int] NOT NULL,
 	[isApproved] [nvarchar](5) NOT NULL,
 	[EmployerName] [nvarchar](100) NOT NULL,
+	[JobTitle] [nvarchar](50),
+	[EmployerSummary] [nvarchar](1000),
  CONSTRAINT [PK_Employer] PRIMARY KEY CLUSTERED 
 (
 	[EmployerID] ASC
@@ -284,25 +312,7 @@ CREATE TABLE [dbo].[Parent](
 	[StudentID] [int] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Person]    Script Date: 3/22/2019 5:00:33 PM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[Person](
-	[PersonID] [int] IDENTITY(1,1) NOT NULL,
-	[FirstName] [nvarchar](50) NOT NULL,
-	[MiddleName] [nvarchar](50) NULL,
-	[LastName] [nvarchar](50) NOT NULL,
-	[Email] [nvarchar](50) NOT NULL,
-	[AddressID] [int] NOT NULL,
-	[personType] [nvarchar](10) NOT NULL,
- CONSTRAINT [PK_Person] PRIMARY KEY CLUSTERED 
-(
-	[PersonID] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY]
-GO
+
 /****** Object:  Table [dbo].[Post]    Script Date: 3/22/2019 5:00:33 PM ******/
 SET ANSI_NULLS ON
 GO
@@ -420,6 +430,25 @@ CREATE TABLE [dbo].[StudentOpportunity](
 	[OpportunityID] [int] NOT NULL
 ) ON [PRIMARY]
 GO
+CREATE TABLE [dbo].[User_LogTime](
+	[LogID] [int] IDENTITY(1,1) NOT NULL,
+	[PersonID] [int] NULL,
+	[SID] [nvarchar](50) NULL,
+	[Login_Time] [datetime] NULL,
+	[Logout_Time] [datetime] NULL,
+	[offline] [bit] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[LogID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[User_LogTime]  WITH CHECK ADD FOREIGN KEY([PersonID])
+REFERENCES [dbo].[Person] ([PersonID])
+GO
+
+
 ALTER TABLE [dbo].[Account]  WITH CHECK ADD  CONSTRAINT [FK_Account_Person] FOREIGN KEY([PersonID])
 REFERENCES [dbo].[Person] ([PersonID])
 GO
@@ -590,7 +619,18 @@ REFERENCES [dbo].[Student] ([StudentID])
 GO
 ALTER TABLE [dbo].[StudentOpportunity] CHECK CONSTRAINT [FK_StudentOpportunity_Student]
 GO
+USE [Cued-in]
+
+go
+USE [Cued-in]
+GO
+ALTER DATABASE [Cued-In] SET  READ_WRITE 
+GO
+ALTER TABLE [dbo].[Attachment]
+ALTER COLUMN Content varchar(100);	       
 USE [master]
 GO
 ALTER DATABASE [Cued-In] SET  READ_WRITE 
+GO
+Use [Cued-In]
 GO
